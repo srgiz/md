@@ -1,0 +1,15 @@
+services:
+  app:
+    image: srgiz/md:latest
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PS1: "\\u:\\w$$ "
+    container_name: md-app
+    volumes:
+      - ./.env:/srv/.env
+      - ./data:/srv/data
+      #- ./web:/srv/web
+      #- ./migrations:/srv/migrations
