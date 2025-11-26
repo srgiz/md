@@ -17,6 +17,7 @@ type server struct {
 
 func newServer(
 	pingHandler *internal.PingHandler,
+	fileReceiver *internal.FileReceiver,
 ) *server {
 	rpcServer := rpc.NewServer()
 	rpcServer.RegisterCodec(json2.NewCustomCodec(&rpc.CompressionSelector{}), "application/json")
@@ -24,11 +25,14 @@ func newServer(
 	// Ping.Test
 	addHandler(rpcServer, pingHandler, "Ping")
 
+	// File.Edit
+	addHandler(rpcServer, fileReceiver, "File")
+
 	return &server{rpcServer: rpcServer}
 }
 
 func addHandler(rpcServer *rpc.Server, receiver any, name string) {
-	if err := rpcServer.RegisterService(new(internal.PingHandler), "Ping"); err != nil {
+	if err := rpcServer.RegisterService(receiver, name); err != nil {
 		log.Fatal(err)
 	}
 }

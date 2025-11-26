@@ -5,15 +5,17 @@ package server
 
 import (
 	"md/internal/app/server/internal"
+	"md/internal/infra"
 
 	"github.com/google/wire"
 )
 
-func Initialize() *server {
+func Initialize(dataPath string) *server {
 	wire.Build(
 		newServer,
-		//di.Set,
+		infra.DiWireSet,
 		internal.NewPingHandler,
+		internal.NewFileReceiver,
 	)
 
 	return &server{}
