@@ -4,18 +4,24 @@ import (
 	"context"
 	"fmt"
 	"md/internal/domain/usecase"
+	"md/internal/domain/validator"
 )
 
 type handler func(ctx context.Context, cmd any) (any, error)
 
 type Bus struct {
-	handlers map[string]handler
+	handlers            map[string]handler
+	validatorMiddleware *validatorMiddleware
 }
 
 func New(
+	validator validator.Validator,
 	editFile *usecase.EditFileUseCase,
 ) *Bus {
-	bus := &Bus{handlers: make(map[string]handler)}
+	bus := &Bus{
+		handlers:            make(map[string]handler),
+		validatorMiddleware: &validatorMiddleware{validator: validator},
+	}
 
 	bus.add(&usecase.EditFileCommand{}, func(ctx context.Context, cmd any) (any, error) {
 		return nil, editFile.Handle(ctx, cmd.(*usecase.EditFileCommand))
@@ -28,33 +34,6 @@ func (bus *Bus) add(cmd any, h handler) {
 	bus.handlers[fmt.Sprintf("%T", cmd)] = h
 }
 
-/*
-func NewBus(args ...any) *Bus {
-	if len(args)%2 != 0 {
-		panic("args must be an even number")
-	}
-
-	handlers := make(map[string]handler)
-
-	for i := 0; i < len(args); i += 2 {
-		cmd, f := args[i], args[i+1]
-
-		if reflect.ValueOf(cmd).Kind() != reflect.Ptr {
-			panic("cmd must be a pointer")
-		}
-
-		h, ok := f.(handler)
-
-		if !ok {
-			panic("handler must be a handler func")
-		}
-
-		handlers[fmt.Sprintf("%T", cmd)] = h
-	}
-
-	return &Bus{handlers: handlers}
-}*/
-
 func (bus *Bus) Handle(ctx context.Context, cmd any) (any, error) {
 	h, ok := bus.handlers[fmt.Sprintf("%T", cmd)]
 
@@ -62,5 +41,9 @@ func (bus *Bus) Handle(ctx context.Context, cmd any) (any, error) {
 		panic("handler not found")
 	}
 
-	return h(ctx, cmd)
+	return bus.validatorMiddleware.Handle(ctx, cmd, h)
+}
+
+type Middleware interface {
+	Handle(ctx context.Context, cmd any, next handler) (any, error)
 }

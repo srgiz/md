@@ -11,9 +11,9 @@ import (
 )
 
 type EditFileCommand struct {
-	Path  string `json:"path"`
+	Path  string `json:"path" validate:"required"`
 	title string // todo
-	Body  string `json:"body"`
+	Body  string `json:"body" validate:"required"`
 }
 
 type EditFileUseCase struct {

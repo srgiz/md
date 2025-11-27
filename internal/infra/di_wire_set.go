@@ -3,6 +3,7 @@ package infra
 import (
 	"md/internal/domain/cmdbus"
 	"md/internal/domain/usecase"
+	infra_validator "md/internal/infra/validator"
 
 	"github.com/google/wire"
 	//"github.com/gorilla/schema"
@@ -33,6 +34,12 @@ var DiWireSet = wire.NewSet(
 	//repositoryimpl.NewObjectRepositoryImpl,
 	//repositoryimpl.NewVeObjectRepositoryImpl,
 	//repositoryimpl.NewPlanRepositoryImpl,
+
+	infra_validator.NewPlaygroundValidator,
+	//wire.NewSet(
+	//	infra_validator.NewPlaygroundValidator,
+	//wire.Bind(new(validator.Validator), new(*infra_validator.PlaygroundValidator)),
+	//),
 
 	cmdbus.New,
 	usecase.NewEditFileUseCase,
