@@ -19,15 +19,21 @@ RUN make build app=server
 # Build the final image
 FROM alpine:3.21
 
-RUN apk add make
+ENV DOCKER_APP_UID=1000
+
+RUN apk add make \
+  && addgroup -g $DOCKER_APP_UID app \
+  && adduser -u $DOCKER_APP_UID -G app -D app
 
 WORKDIR /srv
+USER app
+
 #COPY --from=builder /go/bin/goose /usr/local/bin/goose
 #COPY migrations migrations
-COPY go.mod Makefile ./
-COPY .env* ./
+COPY --chown=app:app go.mod Makefile ./
+COPY --chown=app:app .env* ./
 #COPY web web
-COPY --from=builder /srv/build ./build
+COPY --chown=app:app --from=builder /srv/build ./build
 
 #EXPOSE 8080
 CMD ["./build/server"]
