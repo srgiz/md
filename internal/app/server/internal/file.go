@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"md/internal/domain/cmdbus"
 	"md/internal/domain/usecase"
 	"net/http"
 
@@ -8,13 +9,14 @@ import (
 )
 
 type FileReceiver struct {
-	useCase *usecase.EditFileUseCase
+	bus *cmdbus.Bus
 }
 
-func NewFileReceiver(useCase *usecase.EditFileUseCase) *FileReceiver {
-	return &FileReceiver{useCase: useCase}
+func NewFileReceiver(bus *cmdbus.Bus) *FileReceiver {
+	return &FileReceiver{bus: bus}
 }
 
 func (s *FileReceiver) Edit(r *http.Request, cmd *usecase.EditFileCommand, res *json2.EmptyResponse) error {
-	return s.useCase.Handle(r.Context(), *cmd)
+	_, err := s.bus.Handle(r.Context(), cmd)
+	return err
 }

@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"md/internal/domain/cmdbus"
 	"md/internal/domain/usecase"
 
 	"github.com/google/wire"
@@ -33,5 +34,6 @@ var DiWireSet = wire.NewSet(
 	//repositoryimpl.NewVeObjectRepositoryImpl,
 	//repositoryimpl.NewPlanRepositoryImpl,
 
+	cmdbus.New,
 	usecase.NewEditFileUseCase,
 )

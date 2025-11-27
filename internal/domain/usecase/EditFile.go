@@ -24,13 +24,13 @@ func NewEditFileUseCase(dataPath string) *EditFileUseCase {
 	return &EditFileUseCase{dataPath: dataPath}
 }
 
-func (u *EditFileUseCase) Handle(ctx context.Context, cmd EditFileCommand) error {
+func (u *EditFileUseCase) Handle(ctx context.Context, cmd *EditFileCommand) error {
 	filePath := u.dataPath + strings.TrimLeft(cmd.Path, "/")
 	log.Println("filePath: " + filePath)
 
 	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
-		if mkdirErr := os.MkdirAll(filepath.Dir(filePath), 0750); mkdirErr != nil {
-			return err
+		if mkdirErr := os.MkdirAll(filepath.Dir(filePath), 0770); mkdirErr != nil {
+			return err // https://chmod-calculator.com/
 		}
 
 		file, createErr := os.Create(filePath)
@@ -40,7 +40,7 @@ func (u *EditFileUseCase) Handle(ctx context.Context, cmd EditFileCommand) error
 
 		defer file.Close()
 
-		writeErr := os.WriteFile(filePath, []byte(cmd.Body), 0644)
+		writeErr := os.WriteFile(filePath, []byte(cmd.Body), 0660)
 
 		if writeErr != nil {
 			return fmt.Errorf("create write file error: %w", writeErr)
@@ -48,14 +48,14 @@ func (u *EditFileUseCase) Handle(ctx context.Context, cmd EditFileCommand) error
 	} else if err != nil {
 		return err
 	} else {
-		file, openErr := os.OpenFile(filePath /*os.O_APPEND|os.O_CREATE|*/, os.O_WRONLY, 0644)
+		file, openErr := os.OpenFile(filePath /*os.O_APPEND|os.O_CREATE|*/, os.O_WRONLY, 0660)
 		if openErr != nil {
 			return openErr
 		}
 
 		defer file.Close()
 
-		writeErr := os.WriteFile(filePath, []byte(cmd.Body), 0644)
+		writeErr := os.WriteFile(filePath, []byte(cmd.Body), 0660)
 
 		if writeErr != nil {
 			return writeErr
