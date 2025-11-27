@@ -4,6 +4,8 @@ go 1.25
 
 require (
 	github.com/go-playground/validator/v10 v10.28.0
+	github.com/goccy/go-yaml v1.18.0
+	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.7.0
 	github.com/gorilla/rpc v1.2.1
 	github.com/joho/godotenv v1.5.1
