@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/goccy/go-yaml"
@@ -60,12 +61,6 @@ func (u *EditFileUseCase) Handle(ctx context.Context, cmd *EditFileCommand) erro
 
 		defer file.Close()
 
-		truncateErr := file.Truncate(0)
-
-		if truncateErr != nil {
-			return truncateErr
-		}
-
 		//writeErr := os.WriteFile(filePath, []byte(cmd.Body), 0660)
 		//_, writeErr := file.Write([]byte(cmd.Body))
 		return u.writeFile(file, cmd, false)
@@ -85,7 +80,29 @@ func (u *EditFileUseCase) writeFile(file *os.File, cmd *EditFileCommand, isNew b
 		title = filepath.Base(file.Name())
 	}
 
-	id := "" // todo: read id from file
+	id := ""
+
+	if !isNew {
+		re := regexp.MustCompile(`(?Us)^---\n(.*)?\n---\n(.+)?$`)
+		content, _ := os.ReadFile(file.Name())
+		matches := re.FindStringSubmatch(string(content))
+		log.Printf("cnt re matches: %d\n", len(matches))
+
+		if len(matches) < 2 {
+			isNew = true
+		} else {
+			headers := &fileHeaders{}
+			err := yaml.Unmarshal([]byte(matches[1]), headers)
+			log.Printf("headers matches: %v\n", headers)
+
+			if err != nil {
+				log.Printf("err headers matches: %s\n", err.Error())
+				isNew = true
+			} else {
+				id = headers.Id
+			}
+		}
+	}
 
 	if isNew {
 		uuidV7, err := uuid.NewV7()
@@ -97,6 +114,10 @@ func (u *EditFileUseCase) writeFile(file *os.File, cmd *EditFileCommand, isNew b
 		id = uuidV7.String()
 	}
 
+	if id == "" {
+		return errors.New("id is empty")
+	}
+
 	headers, err := yaml.Marshal(&fileHeaders{
 		Id:    id,
 		Title: title,
@@ -104,6 +125,14 @@ func (u *EditFileUseCase) writeFile(file *os.File, cmd *EditFileCommand, isNew b
 
 	if err != nil {
 		return err
+	}
+
+	if !isNew {
+		truncateErr := file.Truncate(0)
+
+		if truncateErr != nil {
+			return truncateErr
+		}
 	}
 
 	file.WriteString("---\n")
