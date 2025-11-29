@@ -15,7 +15,13 @@ func NewFileReceiver(bus *cmdbus.Bus) *FileReceiver {
 }
 
 func (s *FileReceiver) Edit(r *http.Request, cmd *usecase.EditFileCommand, res *usecase.EditFileResult) error {
-	data, err := s.bus.Handle(r.Context(), cmd)
-	*res = *data.(*usecase.EditFileResult)
+	dto, err := s.bus.Handle(r.Context(), cmd)
+
+	if dto != nil {
+		if data := dto.(*usecase.EditFileResult); data != nil {
+			*res = *data
+		}
+	}
+
 	return err
 }
