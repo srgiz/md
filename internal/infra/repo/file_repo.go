@@ -65,6 +65,10 @@ func (r *FileRepository) Write(ctx context.Context, path string, file *entity.Fi
 		file.Id = uuidV7.String()
 	}
 
+	if file.Title == "" {
+		file.Title = filepath.Base(path)
+	}
+
 	if err != nil { // not exists
 		if mkdirErr := os.MkdirAll(filepath.Dir(fullPath), 0770); mkdirErr != nil {
 			return mkdirErr // https://chmod-calculator.com/

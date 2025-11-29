@@ -14,7 +14,6 @@ func Initialize(dataPath string) *server {
 	wire.Build(
 		newServer,
 		infra.DiWireSet,
-		internal.NewPingHandler,
 		internal.NewFileReceiver,
 	)
 

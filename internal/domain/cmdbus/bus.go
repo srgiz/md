@@ -24,7 +24,7 @@ func New(
 	}
 
 	bus.add(&usecase.EditFileCommand{}, func(ctx context.Context, cmd any) (any, error) {
-		return nil, editFile.Handle(ctx, cmd.(*usecase.EditFileCommand))
+		return editFile.Handle(ctx, cmd.(*usecase.EditFileCommand))
 	})
 
 	return bus
