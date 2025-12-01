@@ -14,14 +14,12 @@ func NewFileReceiver(bus *cmdbus.Bus) *FileReceiver {
 	return &FileReceiver{bus: bus}
 }
 
+// Edit executes "File.Edit"
 func (s *FileReceiver) Edit(r *http.Request, cmd *usecase.EditFileCommand, res *usecase.EditFileResult) error {
-	dto, err := s.bus.Handle(r.Context(), cmd)
+	return handle(s.bus, r, cmd, res)
+}
 
-	if dto != nil {
-		if data := dto.(*usecase.EditFileResult); data != nil {
-			*res = *data
-		}
-	}
-
-	return err
+// Find executes "File.Find"
+func (s *FileReceiver) Find(r *http.Request, cmd *usecase.FindFileCommand, res *usecase.FindFileResult) error {
+	return handle(s.bus, r, cmd, res)
 }

@@ -42,4 +42,5 @@ var DiWireSet = wire.NewSet(
 
 	cmdbus.New,
 	usecase.NewEditFileUseCase,
+	usecase.NewFindFileUseCase,
 )

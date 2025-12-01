@@ -21,7 +21,6 @@ func newServer(
 	rpcServer := rpc.NewServer()
 	rpcServer.RegisterCodec(json2.NewCustomCodec(&rpc.CompressionSelector{}), "application/json")
 
-	// File.Edit
 	addHandler(rpcServer, fileReceiver, "File")
 
 	return &server{rpcServer: rpcServer}

@@ -24,8 +24,30 @@ func NewFileRepository(dataPath string) repo.FileRepository {
 	return &FileRepository{dataPath: dataPath}
 }
 
+func (r *FileRepository) fullPath(path string) string {
+	return r.dataPath + strings.Trim(path, "/") + ".md"
+}
+
+func (r *FileRepository) Find(ctx context.Context, path string) *entity.File {
+	fullPath := r.fullPath(path)
+	log.Printf("fullPath: %s\n", fullPath)
+
+	if _, err := os.Stat(fullPath); err != nil {
+		return nil
+	}
+
+	headers, body, _ := r.parse(fullPath)
+	log.Printf("find headers: %v\n", headers)
+
+	return &entity.File{
+		Body:  body,
+		Id:    headers.Id,
+		Title: headers.Title,
+	}
+}
+
 func (r *FileRepository) Write(ctx context.Context, path string, file *entity.File) error {
-	fullPath := r.dataPath + strings.Trim(path, "/") + ".md"
+	fullPath := r.fullPath(path)
 	info, err := os.Stat(fullPath)
 
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -37,21 +59,12 @@ func (r *FileRepository) Write(ctx context.Context, path string, file *entity.Fi
 	}
 
 	if err == nil { // exists
-		re := regexp.MustCompile(`(?Us)^---\n(.*)?\n---\n(.+)?$`)
-		content, _ := os.ReadFile(fullPath)
-		matches := re.FindStringSubmatch(string(content))
-		log.Printf("cnt re matches: %d\n", len(matches))
+		headers, _, headersErr := r.parse(fullPath)
 
-		if len(matches) > 1 {
-			headers := &fileHeaders{}
-			headersErr := yaml.Unmarshal([]byte(matches[1]), headers)
-			log.Printf("headers matches: %v\n", headers)
-
-			if headersErr != nil {
-				log.Printf("err headers matches: %s\n", headersErr.Error())
-			} else {
-				file.Id = headers.Id
-			}
+		if headersErr != nil {
+			log.Printf("err headers matches: %s\n", headersErr.Error())
+		} else {
+			file.Id = headers.Id
 		}
 	}
 
@@ -114,6 +127,23 @@ func (r *FileRepository) osWrite(osFile *os.File, file *entity.File) error {
 	osFile.WriteString(file.Body)
 
 	return nil
+}
+
+func (r *FileRepository) parse(fullPath string) (headers *fileHeaders, body string, err error) {
+	re := regexp.MustCompile(`(?Us)^---\n(.*)?\n---\n(.+)?$`)
+	content, _ := os.ReadFile(fullPath)
+	matches := re.FindStringSubmatch(string(content))
+	headers = &fileHeaders{}
+
+	if len(matches) > 1 {
+		err = yaml.Unmarshal([]byte(matches[1]), headers)
+	}
+
+	if len(matches) > 2 {
+		body = matches[2]
+	}
+
+	return
 }
 
 type fileHeaders struct {

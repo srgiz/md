@@ -7,7 +7,7 @@ import (
 )
 
 type EditFileCommand struct {
-	Path  string `json:"path" validate:"required,filepath,allowedDir"`
+	Path  string `json:"path" validate:"required,filepath,allowedFilepath"`
 	Body  string `json:"body" validate:"required"`
 	Title string `json:"title"`
 }

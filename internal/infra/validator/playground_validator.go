@@ -14,7 +14,7 @@ type PlaygroundValidator struct {
 func NewPlaygroundValidator() validator.Validator {
 	pgv := playground_validator.New()
 
-	if err := pgv.RegisterValidation("allowedDir", isAllowedDir); err != nil {
+	if err := pgv.RegisterValidation("allowedFilepath", isAllowedFilepath); err != nil {
 		panic(err)
 	}
 
@@ -25,17 +25,6 @@ func (v *PlaygroundValidator) Validate(s any) error {
 	return v.pgv.Struct(s)
 }
 
-func isAllowedDir(fl playground_validator.FieldLevel) bool {
-	path := fl.Field().String()
-	dirs := strings.Split(path, "/")
-
-	for i := 0; i < len(dirs)-1; i++ {
-		matches := strings.Split(dirs[i], ".")
-
-		if len(matches) > 1 && matches[len(matches)-1] == "md" {
-			return false
-		}
-	}
-
-	return true
+func isAllowedFilepath(fl playground_validator.FieldLevel) bool {
+	return !strings.Contains(fl.Field().String(), ".")
 }

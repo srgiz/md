@@ -17,6 +17,7 @@ type Bus struct {
 func New(
 	validator validator.Validator,
 	editFile *usecase.EditFileUseCase,
+	findFile *usecase.FindFileUseCase,
 ) *Bus {
 	bus := &Bus{
 		handlers:            make(map[string]handler),
@@ -27,11 +28,21 @@ func New(
 		return editFile.Handle(ctx, cmd.(*usecase.EditFileCommand))
 	})
 
+	bus.add(&usecase.FindFileCommand{}, func(ctx context.Context, cmd any) (any, error) {
+		return findFile.Handle(ctx, cmd.(*usecase.FindFileCommand)), nil
+	})
+
 	return bus
 }
 
 func (bus *Bus) add(cmd any, h handler) {
-	bus.handlers[fmt.Sprintf("%T", cmd)] = h
+	key := fmt.Sprintf("%T", cmd)
+
+	if _, ok := bus.handlers[key]; ok {
+		panic(fmt.Sprintf("duplicate key: %s", key))
+	}
+
+	bus.handlers[key] = h
 }
 
 func (bus *Bus) Handle(ctx context.Context, cmd any) (any, error) {
