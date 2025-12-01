@@ -1,4 +1,4 @@
-package usecase
+package editfile
 
 import (
 	"context"
@@ -6,21 +6,21 @@ import (
 	"md/internal/domain/repo"
 )
 
-type EditFileCommand struct {
+type Command struct {
 	Path  string `json:"path" validate:"required,filepath,allowedFilepath"`
 	Body  string `json:"body" validate:"required"`
 	Title string `json:"title"`
 }
 
-type EditFileUseCase struct {
+type UseCase struct {
 	fileRepo repo.FileRepository
 }
 
-func NewEditFileUseCase(fileRepo repo.FileRepository) *EditFileUseCase {
-	return &EditFileUseCase{fileRepo: fileRepo}
+func New(fileRepo repo.FileRepository) *UseCase {
+	return &UseCase{fileRepo: fileRepo}
 }
 
-func (u *EditFileUseCase) Handle(ctx context.Context, cmd *EditFileCommand) (*EditFileResult, error) {
+func (u *UseCase) Handle(ctx context.Context, cmd *Command) (*Result, error) {
 	file := &entity.File{
 		Title: cmd.Title,
 		Body:  cmd.Body,
@@ -30,9 +30,9 @@ func (u *EditFileUseCase) Handle(ctx context.Context, cmd *EditFileCommand) (*Ed
 		return nil, err
 	}
 
-	return &EditFileResult{Id: file.Id}, nil
+	return &Result{Id: file.Id}, nil
 }
 
-type EditFileResult struct {
+type Result struct {
 	Id string `json:"id"`
 }

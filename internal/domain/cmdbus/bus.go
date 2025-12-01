@@ -3,33 +3,34 @@ package cmdbus
 import (
 	"context"
 	"fmt"
-	"md/internal/domain/usecase"
-	"md/internal/domain/validator"
+	"log"
+	"md/internal/domain/usecase/editfile"
+	"md/internal/domain/usecase/findfile"
 )
 
 type handler func(ctx context.Context, cmd any) (any, error)
 
 type Bus struct {
-	handlers            map[string]handler
-	validatorMiddleware *validatorMiddleware
+	handlers  map[string]handler
+	validator Validator
 }
 
 func New(
-	validator validator.Validator,
-	editFile *usecase.EditFileUseCase,
-	findFile *usecase.FindFileUseCase,
+	validator Validator,
+	editFile *editfile.UseCase,
+	findFile *findfile.UseCase,
 ) *Bus {
 	bus := &Bus{
-		handlers:            make(map[string]handler),
-		validatorMiddleware: &validatorMiddleware{validator: validator},
+		validator: validator,
+		handlers:  make(map[string]handler),
 	}
 
-	bus.add(&usecase.EditFileCommand{}, func(ctx context.Context, cmd any) (any, error) {
-		return editFile.Handle(ctx, cmd.(*usecase.EditFileCommand))
+	bus.add(&editfile.Command{}, func(ctx context.Context, cmd any) (any, error) {
+		return editFile.Handle(ctx, cmd.(*editfile.Command))
 	})
 
-	bus.add(&usecase.FindFileCommand{}, func(ctx context.Context, cmd any) (any, error) {
-		return findFile.Handle(ctx, cmd.(*usecase.FindFileCommand)), nil
+	bus.add(&findfile.Command{}, func(ctx context.Context, cmd any) (any, error) {
+		return findFile.Handle(ctx, cmd.(*findfile.Command)), nil
 	})
 
 	return bus
@@ -52,7 +53,17 @@ func (bus *Bus) Handle(ctx context.Context, cmd any) (any, error) {
 		panic("handler not found")
 	}
 
-	return bus.validatorMiddleware.Handle(ctx, cmd, h)
+	return bus.validate(ctx, cmd, h)
+}
+
+func (bus *Bus) validate(ctx context.Context, cmd any, next handler) (any, error) {
+	if err := bus.validator.Validate(cmd); err != nil {
+		log.Printf("Validator error: %s", err)
+		// todo: prepare text
+		return nil, err
+	}
+
+	return next(ctx, cmd)
 }
 
 type Middleware interface {

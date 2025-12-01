@@ -2,7 +2,8 @@ package infra
 
 import (
 	"md/internal/domain/cmdbus"
-	"md/internal/domain/usecase"
+	"md/internal/domain/usecase/editfile"
+	"md/internal/domain/usecase/findfile"
 	infra_repo "md/internal/infra/repo"
 	infra_validator "md/internal/infra/validator"
 
@@ -40,7 +41,9 @@ var DiWireSet = wire.NewSet(
 
 	infra_repo.NewFileRepository,
 
-	cmdbus.New,
-	usecase.NewEditFileUseCase,
-	usecase.NewFindFileUseCase,
+	wire.NewSet(
+		cmdbus.New,
+		editfile.New,
+		findfile.New,
+	),
 )

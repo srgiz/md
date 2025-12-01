@@ -1,37 +1,37 @@
-package usecase
+package findfile
 
 import (
 	"context"
 	"md/internal/domain/repo"
 )
 
-type FindFileCommand struct {
+type Command struct {
 	Path string `json:"path" validate:"required,filepath,allowedFilepath"`
 }
 
-type FindFileUseCase struct {
+type UseCase struct {
 	fileRepo repo.FileRepository
 }
 
-func NewFindFileUseCase(fileRepo repo.FileRepository) *FindFileUseCase {
-	return &FindFileUseCase{fileRepo: fileRepo}
+func New(fileRepo repo.FileRepository) *UseCase {
+	return &UseCase{fileRepo: fileRepo}
 }
 
-func (u *FindFileUseCase) Handle(ctx context.Context, cmd *FindFileCommand) *FindFileResult {
+func (u *UseCase) Handle(ctx context.Context, cmd *Command) *Result {
 	file := u.fileRepo.Find(ctx, cmd.Path)
 
 	if file == nil {
-		return &FindFileResult{}
+		return &Result{}
 	}
 
-	return &FindFileResult{
+	return &Result{
 		Id:    file.Id,
 		Title: file.Title,
 		Body:  file.Body,
 	}
 }
 
-type FindFileResult struct {
+type Result struct {
 	Id    string `json:"id"`
 	Title string `json:"title"`
 	Body  string `json:"body"`

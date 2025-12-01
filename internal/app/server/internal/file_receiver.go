@@ -2,7 +2,8 @@ package internal
 
 import (
 	"md/internal/domain/cmdbus"
-	"md/internal/domain/usecase"
+	"md/internal/domain/usecase/editfile"
+	"md/internal/domain/usecase/findfile"
 	"net/http"
 )
 
@@ -15,11 +16,11 @@ func NewFileReceiver(bus *cmdbus.Bus) *FileReceiver {
 }
 
 // Edit executes "File.Edit"
-func (s *FileReceiver) Edit(r *http.Request, cmd *usecase.EditFileCommand, res *usecase.EditFileResult) error {
+func (s *FileReceiver) Edit(r *http.Request, cmd *editfile.Command, res *editfile.Result) error {
 	return handle(s.bus, r, cmd, res)
 }
 
 // Find executes "File.Find"
-func (s *FileReceiver) Find(r *http.Request, cmd *usecase.FindFileCommand, res *usecase.FindFileResult) error {
+func (s *FileReceiver) Find(r *http.Request, cmd *findfile.Command, res *findfile.Result) error {
 	return handle(s.bus, r, cmd, res)
 }
