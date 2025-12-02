@@ -43,6 +43,7 @@ var DiWireSet = wire.NewSet(
 
 	wire.NewSet(
 		cmdbus.New,
+		cmdbus.NewValidatorMw,
 		editfile.New,
 		findfile.New,
 	),
