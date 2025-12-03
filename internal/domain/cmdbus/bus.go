@@ -24,22 +24,30 @@ func New(
 		handlers:    make(map[string]handler),
 	}
 
-	bus.add(&editfile.Command{}, bus.validatorMw.Handle(func(ctx context.Context, cmd any) (any, error) {
+	bus.add(&editfile.Command{}, func(ctx context.Context, cmd any) (any, error) {
 		return editFile.Handle(ctx, cmd.(*editfile.Command))
-	}))
+	}, bus.validatorMw)
 
-	bus.add(&findfile.Command{}, bus.validatorMw.Handle(func(ctx context.Context, cmd any) (any, error) {
+	bus.add(&findfile.Command{}, func(ctx context.Context, cmd any) (any, error) {
 		return findFile.Handle(ctx, cmd.(*findfile.Command)), nil
-	}))
+	}, bus.validatorMw)
 
 	return bus
 }
 
-func (bus *Bus) add(cmd any, h handler) {
+func (bus *Bus) add(cmd any, h handler, middlewares ...Middleware) {
 	key := fmt.Sprintf("%T", cmd)
 
 	if _, ok := bus.handlers[key]; ok {
 		panic(fmt.Sprintf("duplicate key: %s", key))
+	}
+
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		h = func(m Middleware, next handler) handler {
+			return func(ctx context.Context, cmd any) (any, error) {
+				return m.Handle(ctx, cmd, next)
+			}
+		}(middlewares[i], h)
 	}
 
 	bus.handlers[key] = h
@@ -55,7 +63,6 @@ func (bus *Bus) Handle(ctx context.Context, cmd any) (any, error) {
 	return h(ctx, cmd)
 }
 
-/*
 type Middleware interface {
-	Handle(next handler) handler
-}*/
+	Handle(ctx context.Context, cmd any, next handler) (any, error)
+}

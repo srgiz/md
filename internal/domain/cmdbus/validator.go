@@ -17,19 +17,6 @@ func NewValidatorMw(validator Validator) *validatorMiddleware {
 	return &validatorMiddleware{validator}
 }
 
-func (m *validatorMiddleware) Handle(next handler) handler {
-	return func(ctx context.Context, cmd any) (any, error) {
-		if err := m.validator.Validate(cmd); err != nil {
-			log.Printf("Validator error: %s", err)
-			// todo: prepare text
-			return nil, err
-		}
-
-		return next(ctx, cmd)
-	}
-}
-
-/*
 func (m *validatorMiddleware) Handle(ctx context.Context, cmd any, next handler) (any, error) {
 	if err := m.validator.Validate(cmd); err != nil {
 		log.Printf("Validator error: %s", err)
@@ -38,4 +25,4 @@ func (m *validatorMiddleware) Handle(ctx context.Context, cmd any, next handler)
 	}
 
 	return next(ctx, cmd)
-}*/
+}
