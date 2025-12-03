@@ -1,11 +1,12 @@
 package server
 
 import (
-	//"flag"
+	"encoding/json"
 	"log"
 	"md/internal/app/server/internal"
 	"net/http"
-	//"time"
+	"net/http/httptest"
+	"strings"
 
 	"github.com/gorilla/rpc/v2"
 	"github.com/gorilla/rpc/v2/json2"
@@ -42,4 +43,16 @@ func (app *server) Run() {
 	}
 
 	log.Fatal(httpServer.ListenAndServe())
+}
+
+func (app *server) Test(r *http.Request) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	app.rpcServer.ServeHTTP(w, r)
+	return w
+}
+
+func (app *server) TestJsonRpc(method string, params any) *httptest.ResponseRecorder {
+	payload := map[string]any{"jsonrpc": "2.0", "method": method, "params": params, "id": "test"}
+	body, _ := json.Marshal(payload)
+	return app.Test(httptest.NewRequest(http.MethodPost, "/jsonrpc", strings.NewReader(string(body))))
 }
