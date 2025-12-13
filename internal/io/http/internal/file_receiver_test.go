@@ -2,12 +2,12 @@ package internal_test // fix: circle import
 
 import (
 	"fmt"
-	"md/internal/app/server"
+	"md/internal/io/http"
 	"testing"
 )
 
 func TestUnknownMethod(t *testing.T) {
-	s := server.Initialize("/tmp/data/")
+	s := http.Initialize("/tmp/data/")
 	w := s.TestJsonRpc("File.Test", nil)
 
 	assertJsonRpcErrorCode(t, w, -32000)
@@ -16,7 +16,7 @@ func TestUnknownMethod(t *testing.T) {
 }
 
 func TestValidFilepath(t *testing.T) {
-	s := server.Initialize("/tmp/data/")
+	s := http.Initialize("/tmp/data/")
 
 	var tests = []struct {
 		path   string

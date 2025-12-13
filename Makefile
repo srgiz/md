@@ -17,14 +17,13 @@ coverage-html: ## Coverage html
 	@go tool cover -html=coverage.out -o coverage.html
 
 wire:
-	@wire ./internal/app/server
-	#@wire ./internal/app/migrate
-	#@wire ./internal/app/scheduler
-	#@wire ./internal/app/consumer
+	@wire ./internal/io/http
+	#@wire ./internal/io/scheduler
+	#@wire ./internal/io/consumer
 
-app := 'server'
+app := 'http'
 
-build: ## Build application (app=server)
-	@wire ./internal/app/$(app)
+build: ## Build application (app=http)
+	@wire ./internal/io/$(app)
 	@go build -o ./build/$(app) ./cmd/$(app)
 #	@go build -ldflags "-X 'exampleapp/internal/infrastructure/di.Version=$(GIT_SHORT_SHA)'" -o ./build/$(app) ./cmd/$(app)

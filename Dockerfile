@@ -1,4 +1,4 @@
-FROM golang:1.25.4-alpine3.21 AS builder
+FROM golang:1.25.5-alpine3.23 AS builder
 
 RUN apk add make git \
     && go install github.com/google/wire/cmd/wire@v0.7.0
@@ -13,17 +13,17 @@ RUN go mod download
 # Copy the actual code files and build the application
 COPY . .
 
-RUN make build app=server
+RUN make build app=http
     #&& make build app=scheduler
 
 # Build the final image
-FROM alpine:3.21
+FROM alpine:3.23
 
-ENV DOCKER_APP_UID=1000
-
+ARG USER_GID=1000
+ARG USER_UID=1000
 RUN apk add make \
-  && addgroup -g $DOCKER_APP_UID app \
-  && adduser -u $DOCKER_APP_UID -G app -D app
+  && addgroup -g $USER_GID app \
+  && adduser -u $USER_UID -G app -D app
 
 WORKDIR /srv
 USER app
@@ -36,4 +36,4 @@ COPY --chown=app:app .env* ./
 COPY --chown=app:app --from=builder /srv/build ./build
 
 #EXPOSE 8080
-CMD ["./build/server"]
+CMD ["./build/http"]

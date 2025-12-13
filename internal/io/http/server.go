@@ -1,9 +1,9 @@
-package server
+package http
 
 import (
 	"encoding/json"
 	"log"
-	"md/internal/app/server/internal"
+	"md/internal/io/http/internal"
 	"net/http"
 	"net/http/httptest"
 	"strings"

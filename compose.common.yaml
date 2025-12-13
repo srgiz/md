@@ -1,0 +1,9 @@
+services:
+  postgres:
+    restart: unless-stopped
+    build:
+      context: ./docker/postgres
+    environment:
+      POSTGRES_PASSWORD: root # # required by postgres image but not used for init
+      PGPASSWORD: root        # for pg_basebackup auth replication user
+      PGUSER: replica_user    # for pg_basebackup auth replication user

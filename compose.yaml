@@ -13,3 +13,35 @@ services:
       - ./data:/srv/data
       #- ./web:/srv/web
       #- ./migrations:/srv/migrations
+    depends_on:
+      - db-master
+      - db-slave1
+
+  db-master:
+    extends:
+      file: compose.common.yaml
+      service: postgres
+    build:
+      dockerfile: master.Dockerfile
+    volumes:
+      - 'md-postgres18-master:/var/lib/postgresql/data'
+
+  db-slave1:
+    extends:
+      file: compose.common.yaml
+      service: postgres
+    build:
+      dockerfile: replica.Dockerfile
+    environment:
+      PGHOST: db-master # for pg_basebackup auth replication user
+    entrypoint: [ "/usr/local/bin/replica.entrypoint.sh" ]
+    volumes:
+      - 'md-postgres18-slave1:/var/lib/postgresql/data'
+    depends_on:
+      - db-master
+
+volumes:
+  md-postgres18-master:
+    name: md-postgres18-master
+  md-postgres18-slave1:
+    name: md-postgres18-slave1

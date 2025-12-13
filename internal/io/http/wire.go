@@ -1,11 +1,11 @@
 //go:build wireinject
 // +build wireinject
 
-package server
+package http
 
 import (
-	"md/internal/app/server/internal"
-	"md/internal/infra"
+	"md/internal/infr"
+	"md/internal/io/http/internal"
 
 	"github.com/google/wire"
 )
@@ -13,7 +13,7 @@ import (
 func Initialize(dataPath string) *server {
 	wire.Build(
 		newServer,
-		infra.DiWireSet,
+		infr.DiWireSet,
 		internal.NewFileReceiver,
 	)
 

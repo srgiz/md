@@ -1,11 +1,11 @@
-package infra
+package infr
 
 import (
 	"md/internal/domain/cmdbus"
 	"md/internal/domain/usecase/editfile"
 	"md/internal/domain/usecase/findfile"
-	infra_repo "md/internal/infra/repo"
-	infra_validator "md/internal/infra/validator"
+	infrRepo "md/internal/infr/repo"
+	infrValidator "md/internal/infr/validator"
 
 	"github.com/google/wire"
 	//"github.com/gorilla/schema"
@@ -33,13 +33,13 @@ var DiWireSet = wire.NewSet(
 
 	//schema.NewDecoder,
 
-	infra_validator.NewPlaygroundValidator,
+	infrValidator.NewPlaygroundValidator,
 	//wire.NewSet(
-	//	infra_validator.NewPlaygroundValidator,
-	//wire.Bind(new(validator.Validator), new(*infra_validator.PlaygroundValidator)),
+	//	infrValidator.NewPlaygroundValidator,
+	//wire.Bind(new(validator.Validator), new(*infrValidator.PlaygroundValidator)),
 	//),
 
-	infra_repo.NewFileRepository,
+	infrRepo.NewFileRepository,
 
 	wire.NewSet(
 		cmdbus.New,
