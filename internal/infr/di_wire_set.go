@@ -4,7 +4,9 @@ import (
 	"md/internal/domain/cmdbus"
 	"md/internal/domain/usecase/editfile"
 	"md/internal/domain/usecase/findfile"
+	"md/internal/infr/postgres"
 	infrRepo "md/internal/infr/repo"
+	infrUser "md/internal/infr/user"
 	infrValidator "md/internal/infr/validator"
 
 	"github.com/google/wire"
@@ -33,6 +35,8 @@ var DiWireSet = wire.NewSet(
 
 	//schema.NewDecoder,
 
+	postgres.NewConn,
+
 	infrValidator.NewPlaygroundValidator,
 	//wire.NewSet(
 	//	infrValidator.NewPlaygroundValidator,
@@ -40,6 +44,8 @@ var DiWireSet = wire.NewSet(
 	//),
 
 	infrRepo.NewFileRepository,
+
+	infrUser.NewUserRepository,
 
 	wire.NewSet(
 		cmdbus.New,
