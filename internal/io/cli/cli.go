@@ -3,7 +3,8 @@ package cli
 import (
 	"context"
 	"log"
-	"md/internal/io/cli/internal"
+	"md/internal/domain/cmdbus"
+	"md/internal/domain/user/usecase/createuser"
 	"os"
 
 	"github.com/urfave/cli/v3"
@@ -14,18 +15,19 @@ type cliApp struct {
 }
 
 func newCliApp(
-	createUserCmd *internal.CreateUserCmd,
+	bus *cmdbus.Bus,
 ) *cliApp {
-	app := &cliApp{&cli.Command{
+	return &cliApp{&cli.Command{
 		Commands: []*cli.Command{
 			{
-				Name:   "user:create",
-				Action: createUserCmd.Handle,
+				Name: "user:create",
+				Action: func(ctx context.Context, command *cli.Command) error {
+					_, err := bus.Handle(ctx, &createuser.Command{Id: command.Args().Get(0), Password: command.Args().Get(1)})
+					return err
+				},
 			},
 		},
 	}}
-
-	return app
 }
 
 func (app *cliApp) Run() {

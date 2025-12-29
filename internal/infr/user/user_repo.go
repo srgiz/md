@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"md/internal/domain/user"
+	"md/internal/domain/user/repo"
 	"md/internal/infr/postgres"
 
 	"golang.org/x/crypto/bcrypt"
@@ -12,7 +12,7 @@ type UserRepository struct {
 	conn *postgres.Conn
 }
 
-func NewUserRepository(conn *postgres.Conn) user.UserRepository {
+func NewUserRepository(conn *postgres.Conn) repo.UserRepository {
 	return &UserRepository{conn}
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"md/internal/domain/usecase/editfile"
 	"md/internal/domain/usecase/findfile"
+	"md/internal/domain/user/usecase/createuser"
 )
 
 type handler func(ctx context.Context, cmd any) (any, error)
@@ -18,6 +19,7 @@ func New(
 	validatorMw *validatorMiddleware,
 	editFile *editfile.UseCase,
 	findFile *findfile.UseCase,
+	createUser *createuser.UseCase,
 ) *Bus {
 	bus := &Bus{
 		validatorMw: validatorMw,
@@ -30,6 +32,10 @@ func New(
 
 	bus.add(&findfile.Command{}, func(ctx context.Context, cmd any) (any, error) {
 		return findFile.Handle(ctx, cmd.(*findfile.Command)), nil
+	}, bus.validatorMw)
+
+	bus.add(&createuser.Command{}, func(ctx context.Context, cmd any) (any, error) {
+		return nil, createUser.Handle(ctx, cmd.(*createuser.Command))
 	}, bus.validatorMw)
 
 	return bus
