@@ -36,7 +36,10 @@ var DiWireSet = wire.NewSet(
 
 	//schema.NewDecoder,
 
-	postgres.NewConn,
+	wire.NewSet(
+		postgres.NewConn,
+		wire.Bind(new(cmdbus.TransactionManager), new(*postgres.Conn)),
+	),
 
 	//infrValidator.NewPlaygroundValidator,
 	//wire.NewSet(
@@ -60,5 +63,6 @@ var DiWireSet = wire.NewSet(
 		infrValidator.NewPlaygroundValidator,
 		cmdbus.New,
 		cmdbus.NewValidatorMw,
+		cmdbus.NewTransactionMw,
 	),
 )

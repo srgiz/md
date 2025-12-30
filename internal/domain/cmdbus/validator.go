@@ -2,11 +2,10 @@ package cmdbus
 
 import (
 	"context"
-	"log"
 )
 
 type Validator interface {
-	Validate(s any) error
+	Validate(ctx context.Context, s any) error
 }
 
 type validatorMiddleware struct {
@@ -18,8 +17,7 @@ func NewValidatorMw(validator Validator) *validatorMiddleware {
 }
 
 func (m *validatorMiddleware) Handle(ctx context.Context, cmd any, next handler) (any, error) {
-	if err := m.validator.Validate(cmd); err != nil {
-		log.Printf("Validator error: %s", err)
+	if err := m.validator.Validate(ctx, cmd); err != nil {
 		// todo: prepare text
 		return nil, err
 	}

@@ -10,6 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const contextTxKey = "*sql.Tx"
+
 type Conn struct {
 	db []*sql.DB
 }
@@ -42,7 +44,7 @@ func (c *Conn) Master() *sql.DB {
 func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	slog.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
 
-	if tx, ok := ctx.Value("*sql.Tx").(*sql.Tx); ok {
+	if tx, ok := ctx.Value(contextTxKey).(*sql.Tx); ok {
 		return tx.QueryContext(ctx, query, args...)
 	}
 
@@ -52,7 +54,7 @@ func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (*sq
 func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
 	slog.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
 
-	if tx, ok := ctx.Value("*sql.Tx").(*sql.Tx); ok {
+	if tx, ok := ctx.Value(contextTxKey).(*sql.Tx); ok {
 		return tx.QueryRowContext(ctx, query, args...)
 	}
 
@@ -62,9 +64,9 @@ func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) *
 func (c *Conn) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	slog.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
 
-	if tx, ok := ctx.Value("*sql.Tx").(*sql.Tx); ok {
+	if tx, ok := ctx.Value(contextTxKey).(*sql.Tx); ok {
 		return tx.ExecContext(ctx, query, args...)
 	}
 
-	return c.db[0].ExecContext(ctx, query, args...)
+	return c.Master().ExecContext(ctx, query, args...)
 }

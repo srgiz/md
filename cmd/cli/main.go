@@ -7,5 +7,7 @@ import (
 )
 
 func main() {
-	cli.Initialize(os.Getenv("APP_DATA")).Run()
+	if err := cli.Initialize(os.Getenv("APP_DATA")).Run(os.Args); err != nil {
+		os.Exit(1)
+	}
 }

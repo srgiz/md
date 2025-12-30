@@ -2,11 +2,13 @@ package cli
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"log/slog"
 	"md/internal/domain/cmdbus"
 	"md/internal/domain/user/usecase/createuser"
-	"os"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/urfave/cli/v3"
 )
 
@@ -42,8 +44,16 @@ func newCliApp(
 	}}
 }
 
-func (app *cliApp) Run() {
-	if err := app.cmd.Run(context.Background(), os.Args); err != nil {
-		log.Fatal(err)
+func (app *cliApp) Run(args []string) error {
+	requestId, _ := uuid.NewV7()
+	ctx := context.WithValue(context.Background(), "X-Request-ID", requestId.String())
+
+	slog.DebugContext(ctx, fmt.Sprintf("cli: %s", strings.Join(args[1:], " ")))
+	err := app.cmd.Run(ctx, args)
+
+	if err != nil {
+		slog.ErrorContext(ctx, fmt.Sprintf("cli: %s", err.Error()))
 	}
+
+	return err
 }

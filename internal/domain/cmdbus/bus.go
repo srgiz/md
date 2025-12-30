@@ -11,19 +11,22 @@ import (
 type handler func(ctx context.Context, cmd any) (any, error)
 
 type Bus struct {
-	validatorMw *validatorMiddleware
-	handlers    map[string]handler
+	validatorMw           *validatorMiddleware
+	transactionMiddleware *transactionMiddleware
+	handlers              map[string]handler
 }
 
 func New(
 	validatorMw *validatorMiddleware,
+	transactionMiddleware *transactionMiddleware,
 	editFile *editfile.UseCase,
 	findFile *findfile.UseCase,
 	createUser *createuser.UseCase,
 ) *Bus {
 	bus := &Bus{
-		validatorMw: validatorMw,
-		handlers:    make(map[string]handler),
+		validatorMw:           validatorMw,
+		transactionMiddleware: transactionMiddleware,
+		handlers:              make(map[string]handler),
 	}
 
 	bus.add(&editfile.Command{}, func(ctx context.Context, cmd any) (any, error) {
@@ -36,11 +39,12 @@ func New(
 
 	bus.add(&createuser.Command{}, func(ctx context.Context, cmd any) (any, error) {
 		return nil, createUser.Handle(ctx, cmd.(*createuser.Command))
-	}, bus.validatorMw)
+	}, bus.transactionMiddleware, bus.validatorMw)
 
 	return bus
 }
 
+// Последний middleware является самым внешним
 func (bus *Bus) add(cmd any, h handler, middlewares ...Middleware) {
 	key := fmt.Sprintf("%T", cmd)
 
@@ -48,7 +52,7 @@ func (bus *Bus) add(cmd any, h handler, middlewares ...Middleware) {
 		panic(fmt.Sprintf("duplicate key: %s", key))
 	}
 
-	for i := len(middlewares) - 1; i >= 0; i-- {
+	for i := 0; i < len(middlewares); i++ {
 		h = func(m Middleware, next handler) handler {
 			return func(ctx context.Context, cmd any) (any, error) {
 				return m.Handle(ctx, cmd, next)

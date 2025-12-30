@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"md/internal/domain/cmdbus"
@@ -23,9 +24,15 @@ func NewPlaygroundValidator() cmdbus.Validator {
 	return &PlaygroundValidator{pgv}
 }
 
-func (v *PlaygroundValidator) Validate(s any) error {
-	slog.Debug(fmt.Sprintf("validator: %v", s))
-	return v.pgv.Struct(s)
+func (v *PlaygroundValidator) Validate(ctx context.Context, s any) error {
+	slog.DebugContext(ctx, fmt.Sprintf("pgv: validate %T", s), "struct", fmt.Sprintf("%#v", s))
+	err := v.pgv.StructCtx(ctx, s)
+
+	if err != nil {
+		slog.DebugContext(ctx, fmt.Sprintf("pgv: %s", err.Error()))
+	}
+
+	return err
 }
 
 func isAllowedFilepath(fl playgroundValidator.FieldLevel) bool {
