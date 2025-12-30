@@ -1,3 +1,5 @@
+//go:build wireinject
+
 package infr
 
 import (
@@ -13,8 +15,6 @@ import (
 	"github.com/google/wire"
 	//"github.com/gorilla/schema"
 )
-
-var Version = "" // ldflags
 
 var DiWireSet = wire.NewSet(
 	//wire.NewSet(

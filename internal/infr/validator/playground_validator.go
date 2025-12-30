@@ -1,18 +1,20 @@
 package validator
 
 import (
+	"fmt"
+	"log/slog"
 	"md/internal/domain/cmdbus"
 	"strings"
 
-	playground_validator "github.com/go-playground/validator/v10"
+	playgroundValidator "github.com/go-playground/validator/v10"
 )
 
 type PlaygroundValidator struct {
-	pgv *playground_validator.Validate
+	pgv *playgroundValidator.Validate
 }
 
 func NewPlaygroundValidator() cmdbus.Validator {
-	pgv := playground_validator.New()
+	pgv := playgroundValidator.New()
 
 	if err := pgv.RegisterValidation("allowedFilepath", isAllowedFilepath); err != nil {
 		panic(err)
@@ -22,9 +24,10 @@ func NewPlaygroundValidator() cmdbus.Validator {
 }
 
 func (v *PlaygroundValidator) Validate(s any) error {
+	slog.Debug(fmt.Sprintf("validator: %v", s))
 	return v.pgv.Struct(s)
 }
 
-func isAllowedFilepath(fl playground_validator.FieldLevel) bool {
+func isAllowedFilepath(fl playgroundValidator.FieldLevel) bool {
 	return !strings.Contains(fl.Field().String(), ".")
 }

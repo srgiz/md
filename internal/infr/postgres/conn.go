@@ -3,17 +3,18 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log/slog"
 	"os"
 
 	_ "github.com/lib/pq"
 )
 
 type Conn struct {
-	//logger *slog.Logger
 	db []*sql.DB
 }
 
-func NewConn( /*logger *slog.Logger*/ ) *Conn {
+func NewConn() *Conn {
 	master, err := sql.Open("postgres", os.Getenv("GOOSE_DBSTRING"))
 
 	if err != nil {
@@ -27,7 +28,7 @@ func NewConn( /*logger *slog.Logger*/ ) *Conn {
 		panic(err)
 	}
 
-	return &Conn{ /*logger, */ []*sql.DB{master, slave1}}
+	return &Conn{[]*sql.DB{master, slave1}}
 }
 
 //func (c *Conn) Close() error {
@@ -39,7 +40,7 @@ func (c *Conn) Master() *sql.DB {
 }
 
 func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	//c.logger.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
+	slog.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
 
 	if tx, ok := ctx.Value("*sql.Tx").(*sql.Tx); ok {
 		return tx.QueryContext(ctx, query, args...)
@@ -49,7 +50,7 @@ func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (*sq
 }
 
 func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
-	//c.logger.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
+	slog.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
 
 	if tx, ok := ctx.Value("*sql.Tx").(*sql.Tx); ok {
 		return tx.QueryRowContext(ctx, query, args...)
@@ -59,7 +60,7 @@ func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) *
 }
 
 func (c *Conn) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	//c.logger.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
+	slog.DebugContext(ctx, fmt.Sprintf("sql: %s", query))
 
 	if tx, ok := ctx.Value("*sql.Tx").(*sql.Tx); ok {
 		return tx.ExecContext(ctx, query, args...)

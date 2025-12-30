@@ -21,8 +21,20 @@ func newCliApp(
 		Commands: []*cli.Command{
 			{
 				Name: "user:create",
+				Arguments: []cli.Argument{
+					&cli.StringArg{
+						Name: "id",
+					},
+					&cli.StringArg{
+						Name: "password",
+					},
+				},
 				Action: func(ctx context.Context, command *cli.Command) error {
-					_, err := bus.Handle(ctx, &createuser.Command{Id: command.Args().Get(0), Password: command.Args().Get(1)})
+					_, err := bus.Handle(ctx, &createuser.Command{
+						Id:       command.StringArg("id"),
+						Password: command.StringArg("password"),
+					})
+
 					return err
 				},
 			},
