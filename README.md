@@ -17,51 +17,69 @@
 ## Мультики
 
 ```mermaid
+flowchart LR
+    Request -- controller create --> Cmd -- send to --> Bus(Command Bus) -- exec --> Handler -- return --> Reply -- controller create --> Response
+```
+
+```mermaid
 flowchart TD
-    subgraph UseCase1
-        Cmd1 --> Handler1 --> Reply1
+    subgraph UseCaseA1
+        CmdA1 --> HandlerA1 --> ReplyA1
     end
 
-    subgraph Handler1
-        Entity1
-        RepositoryInterface1
-    end
-    
-    subgraph DomainContext1
-        UseCase1
-        Infrastructure1
+    subgraph HandlerA1
+        EntityA1
+        RepositoryInterfaceA1
     end
 
-    subgraph Infrastructure1
-        Repository1(SqlRepository) -.-> RepositoryInterface1
+    classDef bgA stroke:#85E89D
+    DomainContextA:::bgA
+    subgraph DomainContextA
+        UseCaseA1
+        InfrastructureA
     end
 
-    subgraph UseCase2
-        Cmd2 --> Handler2 --> Reply2
+    subgraph InfrastructureA
+        RepositoryA1(SqlRepositoryA) -.-> RepositoryInterfaceA1
     end
 
-    subgraph Handler2
-        Entity2
-        RepositoryInterface2
+    subgraph UseCaseB1
+        CmdB1 --> HandlerB1 --> ReplyB1
     end
 
-    subgraph DomainContext2
-        UseCase2
-        Infrastructure2
+    subgraph HandlerB1
+        EntityB1
+        RepositoryInterfaceB1
     end
 
-    subgraph Infrastructure2
-        Repository2(HttpClient) -.-> RepositoryInterface2
+    classDef bgB stroke:#79B8FF
+    DomainContextB:::bgB
+    subgraph DomainContextB
+        UseCaseB1
+        InfrastructureB
+        UseCaseB2
     end
 
-    subgraph CommandBus
-        DomainContext1
-        DomainContext2
+    subgraph UseCaseB2
+        CmdB2 --> HandlerB2 --> ReplyB2
     end
 
-    Request1 -- Deserialize request  --> Cmd1
-    Reply1 -- Serialize response --> Response1
+    subgraph HandlerB2
+        EntityB2
+        RepositoryInterfaceB2
+    end
 
-    Request2 -- Deserialize request  --> Cmd2
-    Reply2 -- Serialize response --> Response2
+    subgraph InfrastructureB
+        RepositoryB1(HttpClientB) -.-> RepositoryInterfaceB1
+        RepositoryB1 -.-> RepositoryInterfaceB2
+    end
+
+    RequestA1 -- "ControllerA1 -> Bus" --> CmdA1
+    ReplyA1 -- "Bus -> ControllerA1" --> ResponseA1
+
+    RequestB1 -- "ControllerB1 -> Bus"  --> CmdB1
+    ReplyB1 -- "Bus -> ControllerB1" --> ResponseB1
+
+    RequestB2 -- "ControllerB2 -> Bus"  --> CmdB2
+    ReplyB2 -- "Bus -> ControllerB2" --> ResponseB2
 ```
