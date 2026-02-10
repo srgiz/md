@@ -15,7 +15,7 @@ wait_for_primary() {
 
 # If PGDATA is empty, initialize by taking base backup from primary
 if [ ! -s "${PGDATA}/PG_VERSION" ]; then
-  rm -r "$PGDATA"
+  rm -rf "$PGDATA/*"
 
   wait_for_primary
 

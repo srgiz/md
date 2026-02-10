@@ -1,11 +1,11 @@
 package main
 
 import (
-	_ "md/internal/infr" // init
-	"md/internal/io/http"
-	"os"
+	"log"
+	"net/http"
 )
 
 func main() {
-	http.Initialize(os.Getenv("APP_DATA")).Run()
+	// todo.
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

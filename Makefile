@@ -23,13 +23,22 @@ coverage-html: ## Coverage html
 	@go test -coverprofile=coverage.out ./...
 	@go tool cover -html=coverage.out -o coverage.html
 
-wire:
-	@wire ./internal/io/http
-	@wire ./internal/io/cli
+gen-mock: ## Generate mocks
+	@mockgen -source=internal/lib/kernel/db/conn.go -destination=internal/lib/kernel/db/conn_mock.go -package=db
+
+#wire:
+#	@wire ./internal/io/http
+#	@wire ./internal/io/cli
 
 app := 'http'
 
-build: ## Build application (app=http)
-	@wire ./internal/io/$(app)
-	@go build -o ./build/$(app) ./cmd/$(app)
+#build: # Build application (app=http|cli)
+#	@wire ./internal/io/$(app)
+#	@go build -o ./build/$(app) ./cmd/$(app)
 #	@go build -ldflags "-X 'exampleapp/internal/infrastructure/di.Version=$(GIT_SHORT_SHA)'" -o ./build/$(app) ./cmd/$(app)
+
+#wirecontext:
+#	@wire ./internal/UserCtx/Present/Cmd/
+
+build: ## Build application (app=http|cli)
+	@go build -o ./build/$(app) ./cmd/$(app)
