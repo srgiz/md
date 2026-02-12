@@ -1,0 +1,49 @@
+version: 3
+workdir: internal
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  #- "^.*\/test\/.*$"
+  - "^.*_mock(_ext)?\\.go$"
+
+allow:
+  depOnAnyVendor: false
+
+vendors:
+  common_vendors:
+    in:
+      - github.com/urfave/cli/v3
+      - golang.org/x/crypto/bcrypt
+  kernel_vendors:
+    in:
+      - github.com/joho/godotenv
+      - github.com/go-playground/validator/v10
+      - github.com/lib/pq
+      - github.com/google/uuid
+
+components:
+  kernel: { in: lib/kernel/** }
+  userctx_di: { in: userctx/infr/di }
+  userctx_infr: { in: userctx/infr/repo/** }
+  userctx_createuser: { in: userctx/domain/createuser }
+
+deps:
+  kernel:
+    mayDependOn:
+      - kernel
+    canUse:
+      - common_vendors
+      - kernel_vendors
+  userctx_di:
+    mayDependOn:
+      - kernel
+      - userctx_infr
+      - userctx_createuser
+    canUse:
+      - common_vendors
+  userctx_infr:
+    mayDependOn:
+      - kernel
+      - userctx_createuser
+    canUse:
+      - common_vendors

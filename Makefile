@@ -26,6 +26,10 @@ coverage-html: ## Coverage html
 gen-mock: ## Generate mocks
 	@mockgen -source=internal/lib/kernel/db/conn.go -destination=internal/lib/kernel/db/conn_mock.go -package=db
 
+check-dep:
+	@go-arch-lint mapping
+	@go-arch-lint check
+
 #wire:
 #	@wire ./internal/io/http
 #	@wire ./internal/io/cli
