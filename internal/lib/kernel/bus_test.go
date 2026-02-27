@@ -1,4 +1,4 @@
-package cmdbus
+package kernel
 
 import (
 	"context"
@@ -10,8 +10,9 @@ import (
 )
 
 func TestHandlerNotFound(t *testing.T) {
-	_, err := NewBus().Handle(context.Background(), NewValidatorMiddleware())
-	assert.ErrorIs(t, err, ErrHandlerNotFound)
+	app := NewApp(make(map[string]any))
+	_, err := app.Handle(context.Background(), &struct{}{})
+	assert.ErrorIs(t, err, ErrCommandHandlerNotFound)
 }
 
 func TestPanicAdd(t *testing.T) {
@@ -63,16 +64,32 @@ func TestPanicAdd(t *testing.T) {
 		},
 	}
 
-	bus := NewBus()
-	bus.Add(func(ctx context.Context, cmd *int64) (*int64, error) {
+	app := NewApp(make(map[string]any))
+	app.AddCmdHandler(func(ctx context.Context, cmd *int64) (*int64, error) {
 		return nil, errors.New("test error")
 	})
 
 	for i, test := range tests {
 		t.Run(fmt.Sprintf("Example %d", i), func(t *testing.T) {
 			assert.PanicsWithValue(t, test.msg, func() {
-				bus.Add(test.handler)
+				app.AddCmdHandler(test.handler)
 			})
 		})
 	}
+}
+
+type testCmd struct{}
+type testRes struct {
+	Value int64
+}
+
+func TestSuccessHandle(t *testing.T) {
+	app := NewApp(make(map[string]any))
+	app.AddCmdHandler(func(ctx context.Context, cmd *testCmd) (*testRes, error) {
+		return &testRes{1}, nil
+	})
+
+	res, err := app.Handle(context.Background(), &testCmd{})
+	assert.Nil(t, err)
+	assert.Equal(t, &testRes{1}, res)
 }

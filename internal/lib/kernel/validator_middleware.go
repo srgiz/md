@@ -1,4 +1,4 @@
-package cmdbus
+package kernel
 
 import (
 	"context"
@@ -8,27 +8,24 @@ import (
 	playgroundValidator "github.com/go-playground/validator/v10"
 )
 
-type ValidatorMiddleware struct {
+var ValidatorBusMiddleware = &validatorMiddleware{playgroundValidator.New(playgroundValidator.WithRequiredStructEnabled())}
+
+type validatorMiddleware struct {
 	pgv *playgroundValidator.Validate
 }
 
-func NewValidatorMiddleware() *ValidatorMiddleware {
-	return &ValidatorMiddleware{playgroundValidator.New(playgroundValidator.WithRequiredStructEnabled())}
-}
-
-func (m *ValidatorMiddleware) Handle(ctx context.Context, cmd any, next Handler) (any, error) {
+func (m *validatorMiddleware) Handle(ctx context.Context, cmd any, next cmdHandler) (any, error) {
 	slog.DebugContext(ctx, fmt.Sprintf("bus: validate %T", cmd), "cmd", fmt.Sprintf("%#v", cmd))
 	err := m.pgv.StructCtx(ctx, cmd)
 
 	if err != nil {
-		// todo. prepare text in controllers
 		return nil, err
 	}
 
 	return next(ctx, cmd)
 }
 
-func (m *ValidatorMiddleware) RegisterValidation(tag string, fn playgroundValidator.Func) {
+func (m *validatorMiddleware) RegisterValidation(tag string, fn playgroundValidator.Func) {
 	if err := m.pgv.RegisterValidation(tag, fn); err != nil {
 		panic(err)
 	}

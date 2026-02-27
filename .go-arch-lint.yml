@@ -12,38 +12,60 @@ allow:
 vendors:
   common_vendors:
     in:
+      - github.com/google/uuid
+      - github.com/lib/pq
       - github.com/urfave/cli/v3
       - golang.org/x/crypto/bcrypt
   kernel_vendors:
     in:
       - github.com/joho/godotenv
       - github.com/go-playground/validator/v10
-      - github.com/lib/pq
-      - github.com/google/uuid
+      - github.com/golang-jwt/jwt/v5
+  userctx_vendors:
+    in:
+      - github.com/golang-jwt/jwt/v5
 
 components:
-  kernel: { in: lib/kernel/** }
-  userctx_di: { in: userctx/infr/di }
-  userctx_infr: { in: userctx/infr/repo/** }
+  libs:
+    in:
+      - lib/logger
+      - lib/sqldb
+      - lib/auth
+  kernel: { in: lib/kernel }
+  userctx_present:
+    in:
+      - userctx/present/di
+      - userctx/present/route
+  userctx_infr: { in: userctx/infr/repo }
   userctx_createuser: { in: userctx/domain/createuser }
+  userctx_createtoken: { in: userctx/domain/login }
 
 deps:
+  libs:
+    canUse:
+      - common_vendors
   kernel:
     mayDependOn:
-      - kernel
+      - libs
     canUse:
       - common_vendors
       - kernel_vendors
-  userctx_di:
+  userctx_present:
     mayDependOn:
+      - userctx_present
+      - libs
       - kernel
       - userctx_infr
       - userctx_createuser
+      - userctx_createtoken
     canUse:
       - common_vendors
   userctx_infr:
     mayDependOn:
+      - libs
       - kernel
       - userctx_createuser
+      - userctx_createtoken
     canUse:
       - common_vendors
+      - userctx_vendors

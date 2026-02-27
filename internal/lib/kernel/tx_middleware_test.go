@@ -1,10 +1,10 @@
-package db
+package kernel
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"md/internal/lib/kernel/cmdbus"
+	"md/internal/lib/sqldb"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -16,7 +16,7 @@ func TestPanicHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	ctx := context.Background()
-	conn, tx := NewMockConnWithTx(ctrl)
+	conn, tx := sqldb.NewMockConnWithTx(ctrl)
 	wasCommit := false
 	wasRollback := false
 
@@ -31,7 +31,7 @@ func TestPanicHandler(t *testing.T) {
 	})
 
 	assert.PanicsWithValue(t, "mock panic", func() {
-		_, _ = NewTxMiddleware(conn).Handle(ctx, 0, func(ctx context.Context, cmd any) (any, error) {
+		_, _ = NewTxBusMiddleware(conn).Handle(ctx, 0, func(ctx context.Context, cmd any) (any, error) {
 			panic("mock panic")
 		})
 	})
@@ -43,7 +43,7 @@ func TestPanicHandler(t *testing.T) {
 func TestCommitAndRollback(t *testing.T) {
 	var tests = []struct {
 		name        string
-		handler     cmdbus.Handler
+		handler     cmdHandler
 		errRes      error
 		wasCommit   bool
 		errCommit   error
@@ -102,7 +102,7 @@ func TestCommitAndRollback(t *testing.T) {
 			defer ctrl.Finish()
 
 			ctx := context.Background()
-			conn, tx := NewMockConnWithTx(ctrl)
+			conn, tx := sqldb.NewMockConnWithTx(ctrl)
 			wasCommit := false
 			wasRollback := false
 
@@ -116,7 +116,7 @@ func TestCommitAndRollback(t *testing.T) {
 				return test.errRollback
 			}).AnyTimes()
 
-			_, err := NewTxMiddleware(conn).Handle(ctx, 0, test.handler)
+			_, err := NewTxBusMiddleware(conn).Handle(ctx, 0, test.handler)
 
 			assert.Equal(t, test.wasCommit, wasCommit)
 			assert.Equal(t, test.wasRollback, wasRollback)

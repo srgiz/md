@@ -1,4 +1,4 @@
-package db
+package sqldb
 
 import (
 	"context"
@@ -12,11 +12,11 @@ import (
 
 const contextKeyTx = "*sql.Tx"
 
-// Conn mockgen -source=internal/lib/kernel/db/conn.go -destination=internal/lib/kernel/db/conn_mock.go -package=db
+// Conn mockgen -source=internal/lib/sqldb/conn.go -destination=internal/lib/sqldb/conn_mock.go -package=sqldb
 type Conn interface {
 	Master() *sql.DB
 	Query(ctx context.Context, query string, args ...any) (rows *sql.Rows, err error)
-	QueryRow(ctx context.Context, query string, args ...any) (row *sql.Row)
+	QueryRow(ctx context.Context, query string, args ...any) (row Row)
 	Exec(ctx context.Context, query string, args ...any) (res sql.Result, err error)
 	Begin(ctx context.Context) (Tx, error)
 }
@@ -68,7 +68,7 @@ func (c *MasterSlaveConn) Query(ctx context.Context, query string, args ...any) 
 	return c.db[1].QueryContext(ctx, query, args...)
 }
 
-func (c *MasterSlaveConn) QueryRow(ctx context.Context, query string, args ...any) (row *sql.Row) {
+func (c *MasterSlaveConn) QueryRow(ctx context.Context, query string, args ...any) (row Row) {
 	defer func() {
 		c.log(ctx, query, row.Err())
 	}()
@@ -140,4 +140,9 @@ func (t *TxAdapter) Rollback() error {
 	}
 
 	return err
+}
+
+type Row interface {
+	Err() error
+	Scan(...any) error
 }

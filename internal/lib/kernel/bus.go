@@ -1,4 +1,4 @@
-package cmdbus
+package kernel
 
 import (
 	"context"
@@ -7,23 +7,17 @@ import (
 	"reflect"
 )
 
-var ErrHandlerNotFound = errors.New("bus: handler not found")
+var ErrCommandHandlerNotFound = errors.New("app: command handler not found")
 
-type Handler func(ctx context.Context, cmd any) (any, error)
+type cmdHandler func(ctx context.Context, cmd any) (any, error)
 
-type Bus struct {
-	handlers map[string]Handler
+type cmdBus struct {
+	handlers map[string]cmdHandler
 }
 
-func NewBus() *Bus {
-	return &Bus{
-		handlers: make(map[string]Handler),
-	}
-}
-
-// Add Последний middleware является самым внешним
-// Пример handler: func(ctx context.Context, cmd *Command) (*Reply, error)
-func (bus *Bus) Add(handler any, middlewares ...Middleware) {
+// AddCmdHandler Последний middleware является самым внешним
+// Пример handler: func(ctx context.Context, console *Command) (*Reply, error)
+func (bus *cmdBus) AddCmdHandler(handler any, middlewares ...BusMiddleware) {
 	t := reflect.TypeOf(handler)
 
 	if t.Kind() != reflect.Func {
@@ -54,7 +48,7 @@ func (bus *Bus) Add(handler any, middlewares ...Middleware) {
 		panic("second return value must be an error")
 	}
 
-	key := bus.key(t.In(1))
+	key := bus.keyCmd(t.In(1))
 
 	if _, ok := bus.handlers[key]; ok {
 		panic(fmt.Sprintf("handler already exists for %s", key))
@@ -73,7 +67,7 @@ func (bus *Bus) Add(handler any, middlewares ...Middleware) {
 	}
 
 	for i := 0; i < len(middlewares); i++ {
-		h = func(m Middleware, next Handler) Handler {
+		h = func(m BusMiddleware, next cmdHandler) cmdHandler {
 			return func(ctx context.Context, cmd any) (any, error) {
 				return m.Handle(ctx, cmd, next)
 			}
@@ -83,20 +77,20 @@ func (bus *Bus) Add(handler any, middlewares ...Middleware) {
 	bus.handlers[key] = h
 }
 
-func (bus *Bus) Handle(ctx context.Context, cmd any) (any, error) {
-	h, ok := bus.handlers[bus.key(reflect.TypeOf(cmd))]
+func (bus *cmdBus) Handle(ctx context.Context, cmd any) (any, error) {
+	h, ok := bus.handlers[bus.keyCmd(reflect.TypeOf(cmd))]
 
 	if !ok {
-		return nil, ErrHandlerNotFound
+		return nil, ErrCommandHandlerNotFound
 	}
 
 	return h(ctx, cmd)
 }
 
-func (bus *Bus) key(cmdType reflect.Type) string {
+func (bus *cmdBus) keyCmd(cmdType reflect.Type) string {
 	return fmt.Sprintf("*%s.%s", cmdType.Elem().PkgPath(), cmdType.Elem().Name())
 }
 
-type Middleware interface {
-	Handle(ctx context.Context, cmd any, next Handler) (any, error)
+type BusMiddleware interface {
+	Handle(ctx context.Context, cmd any, next cmdHandler) (any, error)
 }

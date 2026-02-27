@@ -1,19 +1,25 @@
-package db
+package kernel
 
 import (
 	"context"
-	"md/internal/lib/kernel/cmdbus"
+	"md/internal/lib/sqldb"
 )
 
-type TxMiddleware struct {
-	conn Conn
+func NewTxBusProvider(serviceName string, conn sqldb.Conn) func(app *App) {
+	return func(app *App) {
+		app.AddService(serviceName, NewTxBusMiddleware(conn))
+	}
 }
 
-func NewTxMiddleware(conn Conn) cmdbus.Middleware {
-	return &TxMiddleware{conn}
+type txBusMiddleware struct {
+	conn sqldb.Conn
 }
 
-func (m *TxMiddleware) Handle(ctx context.Context, cmd any, next cmdbus.Handler) (res any, err error) {
+func NewTxBusMiddleware(conn sqldb.Conn) BusMiddleware {
+	return &txBusMiddleware{conn}
+}
+
+func (m *txBusMiddleware) Handle(ctx context.Context, cmd any, next cmdHandler) (res any, err error) {
 	tx, errBegin := m.conn.Begin(ctx)
 
 	if errBegin != nil {

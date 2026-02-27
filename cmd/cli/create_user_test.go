@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"md/internal/lib/kernel/db"
+	"md/internal/lib/sqldb"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -41,7 +41,7 @@ func TestValidateCreateUser(t *testing.T) {
 			defer ctrl.Finish()
 
 			err := newCliApp(map[string]any{
-				"conn": db.NewMockConn(ctrl),
+				"conn": sqldb.NewMockConn(ctrl),
 			}).RunCli(context.Background(), []string{"", "user:create", test.name, test.pass})
 
 			assert.IsType(t, validator.ValidationErrors{}, err)
@@ -55,7 +55,7 @@ func TestFailCreateUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	ctx := context.Background()
-	conn, tx := db.NewMockConnWithTx(ctrl)
+	conn, tx := sqldb.NewMockConnWithTx(ctrl)
 
 	expectedErr := errors.New("mock error")
 
@@ -72,10 +72,10 @@ func TestSuccessCreateUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	ctx := context.Background()
-	conn, tx := db.NewMockConnWithTx(ctrl)
+	conn, tx := sqldb.NewMockConnWithTx(ctrl)
 
 	tx.EXPECT().Commit().Return(nil)
-	conn.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(db.NewMockRowsAffected(1), nil)
+	conn.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(sqldb.NewMockRowsAffected(1), nil)
 
 	assert.Nil(t, newCliApp(map[string]any{
 		"conn": conn,
