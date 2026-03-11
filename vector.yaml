@@ -1,0 +1,44 @@
+#api:
+#  enabled: true
+#  address: 0.0.0.0:8686
+sources:
+  docker:
+    type: docker_logs
+    #include_containers: [ md-app, md-db-master-1, md-db-slave1-1 ]
+    exclude_containers: [ md-vector, md-vlogs ]
+transforms:
+  msg_parser:
+    type: remap
+    inputs: [docker]
+    source: |
+      .message = parse_json(.message) ?? .message
+      
+    #if exists(.message.context) { .context, _ = to_string(.message.context) }
+sinks:
+  vlogs:
+    type: elasticsearch
+    inputs: [msg_parser]
+    endpoints: [http://vlogs:9428/insert/elasticsearch/]
+    mode: bulk
+    api_version: v8
+    compression: gzip
+    healthcheck:
+      enabled: false
+    request:
+      headers:
+        VL-Stream-Fields: label.com.docker.compose.service,source_type
+        VL-Time-Field: message.time,timestamp # json: message.time || string: timestamp
+        VL-Msg-Field: message.msg,message # json: message.msg || string: message
+        AccountID: "0" # only int
+        ProjectID: "0" # only int
+  #vlogs:
+  #  type: http
+  #  inputs: [msg_parser]
+  #  uri: http://vlogs:9428/insert/jsonline?_stream_fields=label.com.docker.compose.service,source_type&_msg_field=message.msg,message&_time_field=message.time,timestamp
+  #  compression: "gzip"
+  #  encoding:
+  #    codec: json
+  #  framing:
+  #    method: newline_delimited
+  #  healthcheck:
+  #    enabled: false

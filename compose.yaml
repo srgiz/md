@@ -10,10 +10,11 @@ services:
     container_name: md-app
     volumes:
       - ./.env:/srv/.env
-      - ./data:/srv/data
+      #- ./data:/srv/data
       #- ./web:/srv/web
       #- ./migrations:/srv/migrations
     depends_on:
+      - vector
       - db-master
       - db-slave1
 
@@ -24,7 +25,7 @@ services:
     build:
       dockerfile: master.Dockerfile
     volumes:
-      - 'md-postgres18-master:/var/lib/postgresql/data'
+      - md-postgres18-master:/var/lib/postgresql/18/docker
 
   db-slave1:
     extends:
@@ -36,12 +37,37 @@ services:
       PGHOST: db-master # for pg_basebackup auth replication user
     entrypoint: [ "/usr/local/bin/replica.entrypoint.sh" ]
     volumes:
-      - 'md-postgres18-slave1:/var/lib/postgresql/data'
+      - md-postgres18-slave1:/var/lib/postgresql/18/docker
     depends_on:
       - db-master
+
+  vlogs:
+    image: docker.io/victoriametrics/victoria-logs:v1.48.0
+    command:
+      - '-memory.allowedBytes=64MB' # Set the desired memory limit
+      - '-retentionPeriod=14d' # Keep logs for 14 days
+    container_name: md-vlogs
+    volumes:
+      - md-vlogs:/victoria-logs-data
+
+  vector:
+    image: timberio/vector:0.54.0-alpine
+    container_name: md-vector
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: /var/lib/docker
+        target: /var/lib/docker
+      - ./vector.yaml:/etc/vector/vector.yaml:ro
+    depends_on:
+      - vlogs
 
 volumes:
   md-postgres18-master:
     name: md-postgres18-master
   md-postgres18-slave1:
     name: md-postgres18-slave1
+  md-vlogs:
+    name: md-vlogs

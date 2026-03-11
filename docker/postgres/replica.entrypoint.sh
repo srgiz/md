@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PGDATA=/var/lib/postgresql/data
+#PGDATA=/var/lib/postgresql/18/docker # todo
 #rm -r "$PGDATA"
 
 # Helper: wait for database-master to be ready
@@ -33,6 +33,8 @@ if [ ! -s "${PGDATA}/PG_VERSION" ]; then
   echo "hot_standby = on" >> "${PGDATA}/postgresql.conf"
 
   echo "Replica base backup and standby config completed."
+else
+  echo "Standby config completed."
 fi
 
 # Finally exec the original entrypoint to start postgres normally
